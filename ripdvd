@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# set -x
+
+function setTitle () {
+    echo -n "]0;$1"
+}
+
+
+umask 022
+
+dvd_device=$1
+shift
+
+sub=$1
+shift
+
+termTitle="RIP $dvd_device"
+
+if [ "$sub" = "" ] ; then
+	if [ "$DISPLAY" = "" ] ; then
+		export DISPLAY=:0
+	fi
+	gnome-terminal -t "$termTitle" -e "$0 $dvd_device sub 2>&1 | tee -a /var/tmp/ripdvdsub.log"
+	exit 0
+fi
+
+size=`df -h $dvd_device | grep $dvd_device | awk '{print $2}'`
+termTitle="$termTitle : $size"
+setTitle "$termTitle"
+# read x
+echo
+
+# exit 0
+
+# backup_dir=/data/staging$dvd_device
+backup_dir=/data/movies
+
+title=`dvdbackup -i $dvd_device -I 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title //'`
+
+setTitle "$termTitle : $title"
+if [ "$title" = "" -o "$title" = "DVD_VIDEO" -o -d $backup_dir/"$title" ] ; then
+	echo 
+	read -p "DVD Title '$title' already exists, or is stupid.  Please enter another name, or ENTER to overwrite with the current name " newtitle
+	if [ "$newtitle" != "" ] ; then
+		title=$newtitle
+	fi
+fi
+
+setTitle "$termTitle : $title"
+
+status=0
+if [ "$title" = "" ] ; then
+    echo "The disc name is still invalid.  Exiting."
+    status=1
+else
+    echo "STARTING RIP OF '$title'"
+
+    # Background progress indicator
+    while [ true ] ; do
+	sleep 30
+	setTitle "$termTitle : `du -sh $backup_dir/"$title" | awk '{print $1}'` : $title"
+    done &
+
+    time dvdbackup -M -i $dvd_device -o $backup_dir -n "$title"
+    chmod -R a+r $backup_dir/"$title"
+    find $backup_dir/"$title" -type d -exec chmod a+x {} \;
+    echo "DONE RIPPING '$title'"
+fi
+
+# Stop the background process indicator
+kill %%
+
+eject $dvd_device
+
+setTitle "DONE $termTitle : $title"
+
+echo "$title"
+echo "Enter a new name, or just ENTER to quit"
+read renameTitle
+if [ "$renameTitle" != "" ] ; then
+    mv $backup_dir/"$title" $backup_dir/"$renameTitle"
+fi
+
+exit $status
