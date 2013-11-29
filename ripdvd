@@ -42,20 +42,20 @@ umask 022
 dvd_device=$1
 shift
 # ? What does it expect here?  
-sub=$1
-shift # Gratuitous shift :-)
+#sub=$1
+#shift # NON-gratuitous shift?  
 
 termTitle="RIP $dvd_device"
 
-if [ "$sub" = "" ] ; then
-	if [ "$DISPLAY" = "" ] ; then
-		export DISPLAY=:0
-	fi
-  # ? What is this doing?  
-  # ? Should I save a log file in /tmp? Use unique name only (don't have DVD name yet; timestamp should be sufficient). Later on, move it to $backup_dir and rename to $title? 
-	gnome-terminal -t "$termTitle" -e "$0 $dvd_device sub 2>&1 | tee -a /var/tmp/ripdvdsub.log"
-	exit 0
-fi
+#if [ "$sub" = "" ] ; then
+#	if [ "$DISPLAY" = "" ] ; then
+#		export DISPLAY=:0
+#	fi
+#  # ? What is this doing?  
+#  # ? Should I save a log file in /tmp? Use unique name only (don't have DVD name yet; timestamp should be sufficient). Later on, move it to $backup_dir and rename to $title? 
+#	gnome-terminal -t "$termTitle" -e "$0 $dvd_device sub 2>&1 | tee -a /var/tmp/ripdvdsub.log"
+#	exit 0
+#fi
 
 # Figure out the disc size for the progress in the title bar
 size=`df -h $dvd_device | grep $dvd_device | awk '{print $2}'`
