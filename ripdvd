@@ -62,17 +62,14 @@ size=`df -h $dvd_device | grep $dvd_device | awk '{print $2}'`
 # Set the title bar with 
 termTitle="$termTitle : $size"
 setTitle "$termTitle"
-# ? What's all this on the next 4 (3) lines?
-# read x
-echo
 
-# exit 0
+echo
 
 # I had to edit this to remove quotes from title that my version of dvdbackup adds.
 title=`dvdbackup --info --input=$dvd_device 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title \"//' | sed -e 's/\"$//'`
 
 setTitle "$termTitle : $title"
-# TODO Add check for .iso file with $title name?
+# TODO Add check for file $backup_dir/"$title".iso ?
 if [ "$title" = "" -o "$title" = "DVD_VIDEO" -o -d $backup_dir/"$title" ] ; then
 	echo 
 	read -p "DVD Title '$title' already exists, or is stupid.  Please enter another name, or ENTER to overwrite with the current name " newtitle
@@ -118,6 +115,7 @@ fi
 kill %%
 
 eject $dvd_device
+# TODO MUST ADD!!!  At this point, if $title is blank, we haven't done anything and status=1.
 
 # Tell user we're making the ISO
 setTitle "MAKE ISO $termtitle : $title"
