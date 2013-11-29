@@ -71,36 +71,36 @@ setTitle "$termTitle : $title"
 
 status=0
 if [ "$title" = "" ] ; then
-    # If disc name is empty, exit immediately with a status of 1
-    echo "The disc name is still invalid.  Exiting."
-    exit 1  
+  # If disc title is empty, exit immediately with a status of 1
+  echo "The disc name is still invalid.  Exiting."
+  exit 1  
 else
-    echo "STARTING RIP OF '$title'"
+  echo "STARTING RIP OF '$title'"
 
-    # Background progress indicator
-    while [ true ] ; do
-	    sleep 30
-	    setTitle "$termTitle : `du -sh $backup_dir/"$title" | awk '{print $1}'` : $title"
-    done &
+  # Background progress indicator
+  while [ true ] ; do
+	  sleep 30
+	  setTitle "$termTitle : `du -sh $backup_dir/"$title" | awk '{print $1}'` : $title"
+  done &
 
-# TODO Maybe tee a log for each file?
-    time dvdbackup --mirror --progress --input=$dvd_device --output=$backup_dir --name="$title"
+  # TODO Maybe tee a log for each file?
+  time dvdbackup --mirror --progress --input=$dvd_device --output=$backup_dir --name="$title"
 
-    # Handle dvdbackup's error output
-    case $? in
-      0 ) ;; # Success
-    # 1 ) ;; # Usage error
-    # 2 ) ;; # Title name error
-      * ) 
-         echo "ERROR RUNNING dvdbackup"
-         exit $? 
-         ;; # Failure (-1 or other). TODO Maybe retry with the error-reducing  option --error=b ?  Unknown if dvdbackup throws an error code on an error-filled disc.
-    esac
+  # Handle dvdbackup's error output
+  case $? in
+    0 ) ;; # Success
+  # 1 ) ;; # Usage error
+  # 2 ) ;; # Title name error
+    * ) 
+       echo "ERROR RUNNING dvdbackup"
+       exit $? 
+       ;; # Failure (-1 or other). TODO Maybe retry with the error-reducing  option --error=b ?  Unknown if dvdbackup throws an error code on an error-filled disc.
+  esac
     
-    # No clue why all users need read access on the dir and execute on the files.
-    #chmod -R a+r $backup_dir/"$title"
-    #find $backup_dir/"$title" -type d -exec chmod a+x {} \;
-    echo "DONE RIPPING '$title'"
+  # No clue why all users need read access on the dir and execute on the files.
+  #chmod -R a+r $backup_dir/"$title"
+  #find $backup_dir/"$title" -type d -exec chmod a+x {} \;
+  echo "DONE RIPPING '$title'"
 fi
 
 # Stop the background process indicator
@@ -128,10 +128,10 @@ echo "$title"
 echo "Enter a new name, or just ENTER to quit"
 read renameTitle
 if [ "$renameTitle" != "" ] ; then
-# TODO - Make sure this doesn't overwrite anything!!!
-    mv $backup_dir/"$title".iso $backup_dir/"$renameTitle".iso
-    # Set $title to new title 
-    title="$renameTitle"
+  # TODO - Make sure this doesn't overwrite anything!!!
+  mv $backup_dir/"$title".iso $backup_dir/"$renameTitle".iso
+  # Set $title to new title 
+  title="$renameTitle"
 fi
 
 setTitle "DONE $termTitle : $title.iso"
