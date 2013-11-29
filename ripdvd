@@ -1,17 +1,36 @@
 #!/bin/bash
+#
+# ripdvd - Rip stubborn DVD's to ISO using dvdbackup
+#
 
+# Note: This is the directory that the DVD will be backed up to
+# as well as where the .iso file will be left.
+# It's best you don't choose a high-latency drive like a NAS or USB2 HDD.
+backup_dir=/home/klfjoat/tmp
+
+##########################
+# DO NOT EDIT BELOW HERE #
+##########################
+
+# ? What does this do, again?
 # set -x
 
 function setTitle () {
     echo -n "]0;$1"
 }
 
+# GENERAL TODO:
+#   Add a timestamp grab at the beginning.  Print to window (not title) just before final rename, so that if the disc name is unintelligible (like some Sherlock Holmes, "030617 1424"), and I'm ripping one disc after another before renaming, I can figure out which window goes with which disc, and thus what name it should have.
+#   Make the comments prettier.
+#   Add more comments so that each section is defined.
+#   Use long form options throughout.
 
+# ? Why umask?
 umask 022
-
+# TODO: Validate that dvd_device has been passed, is an optical drive (how?)(why: it doesn't make sense to do this to anything else), and that it has something in it (how?)
 dvd_device=$1
 shift
-
+# ? What does it expect here?  And why shift again?
 sub=$1
 shift
 
@@ -21,6 +40,7 @@ if [ "$sub" = "" ] ; then
 	if [ "$DISPLAY" = "" ] ; then
 		export DISPLAY=:0
 	fi
+  # ? What is this doing?  Should I save a log file in /tmp? Use unique name only (don't have DVD name yet; timestamp should be sufficient). Later on, move it to $backup_dir and rename to $title? 
 	gnome-terminal -t "$termTitle" -e "$0 $dvd_device sub 2>&1 | tee -a /var/tmp/ripdvdsub.log"
 	exit 0
 fi
@@ -28,13 +48,11 @@ fi
 size=`df -h $dvd_device | grep $dvd_device | awk '{print $2}'`
 termTitle="$termTitle : $size"
 setTitle "$termTitle"
+# ? What's all this on the next 4 (3) lines?
 # read x
 echo
 
 # exit 0
-
-# backup_dir=/data/staging$dvd_device
-backup_dir=/home/klfjoat/tmp
 
 # Edit to remove quotes from title that my version of dvdbackup adds.
 title=`dvdbackup -i $dvd_device -I 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title \"//' | sed -e 's/\"$//'`
@@ -62,14 +80,17 @@ else
 	sleep 30
 	setTitle "$termTitle : `du -sh $backup_dir/"$title" | awk '{print $1}'` : $title"
     done &
-
-    time dvdbackup -M -p -i $dvd_device -o $backup_dir -n "$title"
+# TODO Check dvdbackup's output for errors and handle.  Maybe retry with the error-reducing  option --error=b ?  Maybe tee a log for each file?
+# TODO Maybe use the --progress flag?
+# For stubborn discs, retry with: time dvdbackup -M -i /dev/sr0 -o /home/klfjoat/tmp -v -p -n "LTGC V4 D3" --error=b | tee /home/klfjoat/tmp/LTGC_V4D3.log
+    time dvdbackup --mirror --progress --input=$dvd_device --output=$backup_dir --name="$title"
     chmod -R a+r $backup_dir/"$title"
     find $backup_dir/"$title" -type d -exec chmod a+x {} \;
     echo "DONE RIPPING '$title'"
 fi
 
 # Stop the background process indicator
+# ? Is there any way to do this without it showing up in the window?
 kill %%
 
 eject $dvd_device
@@ -79,6 +100,7 @@ setTitle "MAKE ISO $termtitle : $title"
 echo "MAKE ISO $title"
 
 # Make ISO
+# TODO - Create background process indicator
 time mkisofs -dvd-video -udf -quiet -output $backup_dir/"$title".iso $backup_dir/"$title"
 
 # Delete the working directory now that the ISO is done
@@ -97,7 +119,7 @@ if [ "$renameTitle" != "" ] ; then
     title="$renameTitle"
 fi
 
-setTitle "DONE $termTitle : $title"
+setTitle "DONE $termTitle : $title.iso"
 
 # Pause
 #read nothingess
