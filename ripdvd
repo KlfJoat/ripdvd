@@ -4,7 +4,7 @@
 #
 # For stubborn discs, try manually with: 
 # time dvdbackup -M -i /dev/sr0 -o /home/klfjoat/tmp -v -p --error=b | tee /home/klfjoat/tmp/dvdbackup-stubborn.log
-# time mkisofs -dvd-video -udf -quiet -output /home/klfjoat/tmp/"$title".iso /home/klfjoat/tmp/"$title"
+# time mkisofs -dvd-video -udf -quiet -output /home/klfjoat/tmp/stubborn.iso /home/klfjoat/tmp/$title
 #
 
 #####################
@@ -25,6 +25,7 @@ backup_dir=/home/klfjoat/tmp
 # Debugging (print commands before executing)
 # set -x
 
+# Function to change the title of an [xterm|gnome-terminal] window
 function setTitle () {
     echo -n "]0;$1"
 }
@@ -50,12 +51,15 @@ if [ "$sub" = "" ] ; then
 	if [ "$DISPLAY" = "" ] ; then
 		export DISPLAY=:0
 	fi
-  # ? What is this doing?  Should I save a log file in /tmp? Use unique name only (don't have DVD name yet; timestamp should be sufficient). Later on, move it to $backup_dir and rename to $title? 
+  # ? What is this doing?  
+  # ? Should I save a log file in /tmp? Use unique name only (don't have DVD name yet; timestamp should be sufficient). Later on, move it to $backup_dir and rename to $title? 
 	gnome-terminal -t "$termTitle" -e "$0 $dvd_device sub 2>&1 | tee -a /var/tmp/ripdvdsub.log"
 	exit 0
 fi
 
+# Figure out the disc size for the progress in the title bar
 size=`df -h $dvd_device | grep $dvd_device | awk '{print $2}'`
+# Set the title bar with 
 termTitle="$termTitle : $size"
 setTitle "$termTitle"
 # ? What's all this on the next 4 (3) lines?
@@ -65,7 +69,7 @@ echo
 # exit 0
 
 # I had to edit this to remove quotes from title that my version of dvdbackup adds.
-title=`dvdbackup -i $dvd_device -I 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title \"//' | sed -e 's/\"$//'`
+title=`dvdbackup --info --input=$dvd_device 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title \"//' | sed -e 's/\"$//'`
 
 setTitle "$termTitle : $title"
 # TODO Add check for .iso file with $title name?
