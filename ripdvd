@@ -88,9 +88,12 @@ else
     # Handle dvdbackup's error output
     case $? in
       0 ) ;; # Success
-      1 ) ;; # Usage error
-      2 ) ;; # Title name error
-      * ) exit $? ;; # Failure (-1 or other). TODO Maybe retry with the error-reducing  option --error=b ?  Unknown if dvdbackup throws an error code on an error-filled disc.
+    # 1 ) ;; # Usage error
+    # 2 ) ;; # Title name error
+      * ) 
+         echo "ERROR RUNNING dvdbackup"
+         exit $? 
+         ;; # Failure (-1 or other). TODO Maybe retry with the error-reducing  option --error=b ?  Unknown if dvdbackup throws an error code on an error-filled disc.
     esac
     
     # No clue why all users need read access on the dir and execute on the files.
