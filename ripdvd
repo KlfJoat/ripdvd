@@ -2,17 +2,27 @@
 #
 # ripdvd - Rip stubborn DVD's to ISO using dvdbackup
 #
+# For stubborn discs, try manually with: 
+# time dvdbackup -M -i /dev/sr0 -o /home/klfjoat/tmp -v -p --error=b | tee /home/klfjoat/tmp/dvdbackup-stubborn.log
+# time mkisofs -dvd-video -udf -quiet -output /home/klfjoat/tmp/"$title".iso /home/klfjoat/tmp/"$title"
+#
 
+#####################
+### USER VARIABLE ###
+#####################
 # Note: This is the directory that the DVD will be backed up to
 # as well as where the .iso file will be left.  Ensure it has 18GB!
 # It's best you don't choose a high-latency drive like a NAS or USB2 HDD.
+
 backup_dir=/home/klfjoat/tmp
 
-##########################
-# DO NOT EDIT BELOW HERE #
-##########################
+######################################
+# # # # # # # # #  # # # # # # # # # # 
+####### DO NOT EDIT BELOW HERE #######
+# # # # # # # # #  # # # # # # # # # # 
+######################################
 
-# ? What does this do, again?
+# Debugging (print commands before executing)
 # set -x
 
 function setTitle () {
@@ -27,12 +37,12 @@ function setTitle () {
 
 # ? Why umask?
 umask 022
-# TODO: Validate that dvd_device has been passed, is an optical drive (how?)(why: it doesn't make sense to do this to anything else), and that it has something in it (how?)
+# TODO: Validate that dvd_device has been passed, is an optical drive (how?)(why: it doesn't make sense to do this to anything else), and that it has something in it (how?).  
 dvd_device=$1
 shift
-# ? What does it expect here?  And why shift again?
+# ? What does it expect here?  
 sub=$1
-shift
+shift # Gratuitous shift :-)
 
 termTitle="RIP $dvd_device"
 
@@ -78,15 +88,24 @@ else
 
     # Background progress indicator
     while [ true ] ; do
-	sleep 30
-	setTitle "$termTitle : `du -sh $backup_dir/"$title" | awk '{print $1}'` : $title"
+	    sleep 30
+	    setTitle "$termTitle : `du -sh $backup_dir/"$title" | awk '{print $1}'` : $title"
     done &
-# TODO Check dvdbackup's output for errors and handle.  Maybe retry with the error-reducing  option --error=b ?  Maybe tee a log for each file?
-# TODO Maybe use the --progress flag?
-# For stubborn discs, retry with: time dvdbackup -M -i /dev/sr0 -o /home/klfjoat/tmp -v -p -n "LTGC V4 D3" --error=b | tee /home/klfjoat/tmp/LTGC_V4D3.log
+
+# TODO Maybe tee a log for each file?
     time dvdbackup --mirror --progress --input=$dvd_device --output=$backup_dir --name="$title"
-    chmod -R a+r $backup_dir/"$title"
-    find $backup_dir/"$title" -type d -exec chmod a+x {} \;
+
+    # Handle dvdbackup's error output
+    case $? in
+      0 ) ;; # Success
+      1 ) ;; # Usage error
+      2 ) ;; # Title name error
+      * ) exit $? ;; # Failure (-1 or other). TODO Maybe retry with the error-reducing  option --error=b ?  Unknown if dvdbackup throws an error code on an error-filled disc.
+    esac
+    
+    # No clue why all users need read access on the dir and execute on the files.
+    #chmod -R a+r $backup_dir/"$title"
+    #find $backup_dir/"$title" -type d -exec chmod a+x {} \;
     echo "DONE RIPPING '$title'"
 fi
 
