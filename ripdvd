@@ -31,10 +31,11 @@ function setTitle () {
 }
 
 # GENERAL TODO:
-#   Add a timestamp grab at the beginning.  Print to window (not title) just before final rename, so that if the disc name is unintelligible (like some Sherlock Holmes, "030617 1424"), and I'm ripping one disc after another before renaming, I can figure out which window goes with which disc, and thus what name it should have.
 #   Make the comments prettier.
 #   Add more comments so that each section is defined.
 #   Use long form options throughout.
+
+startTime=`date --iso-8601=minutes`
 
 # ? Why umask?
 umask 022
@@ -124,7 +125,7 @@ rm -rf $backup_dir/"$title"
 # Set title for the rename
 setTitle "RENAME $title.iso"
 
-echo "$title"
+echo "$title rip started $startTime"
 echo "Enter a new name, or just ENTER to quit"
 read renameTitle
 if [ "$renameTitle" != "" ] ; then
@@ -135,6 +136,7 @@ if [ "$renameTitle" != "" ] ; then
 fi
 
 setTitle "DONE $termTitle : $title.iso"
+echo "DONE $termTitle : $title.iso"
 
 # Pause
 #read nothingess
