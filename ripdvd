@@ -122,19 +122,29 @@ time mkisofs -dvd-video -udf -quiet -output $backup_dir/"$title".iso $backup_dir
 # TODO - Check mkisofs's output and ensure that it finished okay before deleting this.
 rm -rf $backup_dir/"$title"
 
-# Set title for the rename
+# Set window title for the rename
 setTitle "RENAME $title.iso"
 
+# Ask for new title to rename .iso file
 echo "$title rip started $startTime"
 echo "Enter a new name, or just ENTER to quit"
 read renameTitle
+
+# If new title entered
 if [ "$renameTitle" != "" ] ; then
-  # TODO - Make sure this doesn't overwrite anything!!!
-  mv $backup_dir/"$title".iso $backup_dir/"$renameTitle".iso
-  # Set $title to new title 
-  title="$renameTitle"
+  # If an .iso already exists with that new title
+  if [ -f $backup_dir/"$renameTitle".iso ] ; then  
+    # Complain and do nothing
+    echo "$backup_dir/$renameTitle.iso exists!  Not renaming."
+    read nothingness
+  else 
+    # Otherwise, go ahead and rename (safely) and update $title var
+    mv --no-clobber $backup_dir/"$title".iso $backup_dir/"$renameTitle".iso
+    title="$renameTitle"
+  fi
 fi
 
+# Tell the user that we're done
 setTitle "DONE $termTitle : $title.iso"
 echo "DONE $termTitle : $title.iso"
 
