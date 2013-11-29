@@ -71,8 +71,9 @@ setTitle "$termTitle : $title"
 
 status=0
 if [ "$title" = "" ] ; then
+    # If disc name is empty, exit immediately with a status of 1
     echo "The disc name is still invalid.  Exiting."
-    status=1
+    exit 1  
 else
     echo "STARTING RIP OF '$title'"
 
@@ -107,7 +108,6 @@ fi
 kill %%
 
 eject $dvd_device
-# TODO MUST ADD!!!  At this point, if $title is blank, we haven't done anything and status=1.
 
 # Tell user we're making the ISO
 setTitle "MAKE ISO $termtitle : $title"
