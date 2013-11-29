@@ -1,4 +1,5 @@
-CThomas
+From http://lifehacker.com/494836168#comments
+(http://lifehacker.com/330983/rip-dvds-in-linux-the-semi+easy-way)
 
 I ripped my entire DVD collection to my hard drive (over 300 discs), and wrote a script to help automate the process. At its core, it uses dvdbackup, but it eliminates all unnecessary interaction with you by:
 
@@ -20,7 +21,7 @@ http://cct-public.s3.amazonaws.com/ripdvd
 
 3) Open it up in an editor, and change the 'backup_dir=' line to specify the directory where you want it to place all your DVD subdirectories.
 
-4) In GNOME, go to System->Preferences->Removable Drives/Media->Multimedia, and set the "Play DVD when inserted" command to "/home//ripdvd %d" (I don't know how to do this in other types of desktop environments)
+4) In GNOME, go to System->Preferences->Removable Drives/Media->Multimedia, and set the "Play DVD when inserted" command to "/home/klfjoat/bin/ripdvd %d" (I don't know how to do this in other types of desktop environments)
 
 Then, insert a DVD. A Terminal window (primitive, isn't it?) will pop up with the script output. If it doesn't like the default name, it will beep, and ask you to enter a different one. After ripping, it will eject, and you can put in another disc, and the process will start over. Meanwhile, back in the terminal window, it will have asked you if you want to rename it from the default name. If not, just press ENTER.
 

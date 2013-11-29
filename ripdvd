@@ -34,9 +34,10 @@ echo
 # exit 0
 
 # backup_dir=/data/staging$dvd_device
-backup_dir=/data/movies
+backup_dir=/home/klfjoat/tmp
 
-title=`dvdbackup -i $dvd_device -I 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title //'`
+# Edit to remove quotes from title that my version of dvdbackup adds.
+title=`dvdbackup -i $dvd_device -I 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title \"//' | sed -e 's/\"$//'`
 
 setTitle "$termTitle : $title"
 if [ "$title" = "" -o "$title" = "DVD_VIDEO" -o -d $backup_dir/"$title" ] ; then
@@ -62,7 +63,7 @@ else
 	setTitle "$termTitle : `du -sh $backup_dir/"$title" | awk '{print $1}'` : $title"
     done &
 
-    time dvdbackup -M -i $dvd_device -o $backup_dir -n "$title"
+    time dvdbackup -M -p -i $dvd_device -o $backup_dir -n "$title"
     chmod -R a+r $backup_dir/"$title"
     find $backup_dir/"$title" -type d -exec chmod a+x {} \;
     echo "DONE RIPPING '$title'"
@@ -73,13 +74,32 @@ kill %%
 
 eject $dvd_device
 
-setTitle "DONE $termTitle : $title"
+# Tell user we're making the ISO
+setTitle "MAKE ISO $termtitle : $title"
+echo "MAKE ISO $title"
+
+# Make ISO
+time mkisofs -dvd-video -udf -quiet -output $backup_dir/"$title".iso $backup_dir/"$title"
+
+# Delete the working directory now that the ISO is done
+# TODO - Check mkisofs's output and ensure that it finished okay before deleting this.
+rm -rf $backup_dir/"$title"
+
+# Set title for the rename
+setTitle "RENAME $title.iso"
 
 echo "$title"
 echo "Enter a new name, or just ENTER to quit"
 read renameTitle
 if [ "$renameTitle" != "" ] ; then
-    mv $backup_dir/"$title" $backup_dir/"$renameTitle"
+    mv $backup_dir/"$title".iso $backup_dir/"$renameTitle".iso
+    # Set $title to new title 
+    title="$renameTitle"
 fi
+
+setTitle "DONE $termTitle : $title"
+
+# Pause
+#read nothingess
 
 exit $status
