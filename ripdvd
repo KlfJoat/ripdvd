@@ -4,7 +4,7 @@
 #
 
 # Note: This is the directory that the DVD will be backed up to
-# as well as where the .iso file will be left.
+# as well as where the .iso file will be left.  Ensure it has 18GB!
 # It's best you don't choose a high-latency drive like a NAS or USB2 HDD.
 backup_dir=/home/klfjoat/tmp
 
@@ -54,10 +54,11 @@ echo
 
 # exit 0
 
-# Edit to remove quotes from title that my version of dvdbackup adds.
+# I had to edit this to remove quotes from title that my version of dvdbackup adds.
 title=`dvdbackup -i $dvd_device -I 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title \"//' | sed -e 's/\"$//'`
 
 setTitle "$termTitle : $title"
+# TODO Add check for .iso file with $title name?
 if [ "$title" = "" -o "$title" = "DVD_VIDEO" -o -d $backup_dir/"$title" ] ; then
 	echo 
 	read -p "DVD Title '$title' already exists, or is stupid.  Please enter another name, or ENTER to overwrite with the current name " newtitle
@@ -114,6 +115,7 @@ echo "$title"
 echo "Enter a new name, or just ENTER to quit"
 read renameTitle
 if [ "$renameTitle" != "" ] ; then
+# TODO - Make sure this doesn't overwrite anything!!!
     mv $backup_dir/"$title".iso $backup_dir/"$renameTitle".iso
     # Set $title to new title 
     title="$renameTitle"
