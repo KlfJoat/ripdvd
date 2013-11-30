@@ -5,7 +5,7 @@
 # Install current script to bin
 #
 
-files = 
+files = "ripdvd"
 
 install_to = "/home/klfjoat/bin"
 
