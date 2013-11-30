@@ -1,45 +1,69 @@
 #!/bin/bash
+#
+# ripdvd - Rip stubborn DVD's to ISO using dvdbackup
+#
+# For stubborn discs, try manually with: 
+# time dvdbackup -M -i /dev/sr0 -o /home/klfjoat/tmp -v -p --error=b | tee /home/klfjoat/tmp/dvdbackup-stubborn.log
+# time mkisofs -dvd-video -udf -quiet -output /home/klfjoat/tmp/stubborn.iso /home/klfjoat/tmp/$title
+#
 
+#####################
+### USER VARIABLE ###
+#####################
+# Note: This is the directory that the DVD will be backed up to
+# as well as where the .iso file will be left.  Ensure it has 18GB!
+# It's best you don't choose a high-latency drive like a NAS or USB2 HDD.
+
+backup_dir=/home/klfjoat/tmp
+
+######################################
+# # # # # # # # #  # # # # # # # # # # 
+####### DO NOT EDIT BELOW HERE #######
+# # # # # # # # #  # # # # # # # # # # 
+######################################
+
+#########################
+##### GENERAL SETUP #####
+#########################
+
+# Debugging (print commands before executing)
 # set -x
 
+# Function to change the title of an [xterm|gnome-terminal] window
 function setTitle () {
     echo -n "]0;$1"
 }
 
+startTime=`date --iso-8601=minutes`
 
+# ? Why umask?
 umask 022
 
+# TODO: Validate that dvd_device has been passed, is an optical drive (how?)(why: it doesn't make sense to do this to anything else), and that it has something in it (how?).  
 dvd_device=$1
-shift
-
-sub=$1
 shift
 
 termTitle="RIP $dvd_device"
 
-if [ "$sub" = "" ] ; then
-	if [ "$DISPLAY" = "" ] ; then
-		export DISPLAY=:0
-	fi
-	gnome-terminal -t "$termTitle" -e "$0 $dvd_device sub 2>&1 | tee -a /var/tmp/ripdvdsub.log"
-	exit 0
-fi
+# ? Should I save a log file in /tmp? Use unique name only (don't have DVD name yet; timestamp should be sufficient). Later on, move it to $backup_dir and rename to $title? 
 
-size=`df -h $dvd_device | grep $dvd_device | awk '{print $2}'`
+# Figure out the disc size for the progress in the title bar
+size=`df --human-readable $dvd_device | grep $dvd_device | awk '{print $2}'`
+# Set the title bar with 
 termTitle="$termTitle : $size"
 setTitle "$termTitle"
-# read x
+
 echo
 
-# exit 0
-
-# backup_dir=/data/staging$dvd_device
-backup_dir=/home/klfjoat/tmp
-
-# Edit to remove quotes from title that my version of dvdbackup adds.
-title=`dvdbackup -i $dvd_device -I 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title \"//' | sed -e 's/\"$//'`
-
+# I had to edit this to remove quotes from title that my version of dvdbackup adds.
+title=`dvdbackup --info --input=$dvd_device 2>/dev/null | grep 'DVD-Video information of the DVD with title' | sed -e 's/.* title \"//' | sed -e 's/\"$//'`
 setTitle "$termTitle : $title"
+
+########################
+##### RENAME TITLE #####
+########################
+
+# Check for empty title, bland title, or existing directory
 if [ "$title" = "" -o "$title" = "DVD_VIDEO" -o -d $backup_dir/"$title" ] ; then
 	echo 
 	read -p "DVD Title '$title' already exists, or is stupid.  Please enter another name, or ENTER to overwrite with the current name " newtitle
@@ -50,54 +74,108 @@ fi
 
 setTitle "$termTitle : $title"
 
+######################
+##### BACKUP DVD #####
+######################
+
 status=0
 if [ "$title" = "" ] ; then
-    echo "The disc name is still invalid.  Exiting."
-    status=1
+  # If disc title is empty, exit immediately with a status of 1
+  echo "The disc name is still invalid.  Exiting."
+  exit 1  
 else
-    echo "STARTING RIP OF '$title'"
+  echo "STARTING RIP OF '$title'"
 
-    # Background progress indicator
-    while [ true ] ; do
-	sleep 30
-	setTitle "$termTitle : `du -sh $backup_dir/"$title" | awk '{print $1}'` : $title"
-    done &
+  ### Background progress indicator
+  while [ true ] ; do
+	  sleep 30
+	  setTitle "$termTitle : `du --summarize --human-readable $backup_dir/"$title" | awk '{print $1}'` : $title"
+  done &
 
-    time dvdbackup -M -p -i $dvd_device -o $backup_dir -n "$title"
-    chmod -R a+r $backup_dir/"$title"
-    find $backup_dir/"$title" -type d -exec chmod a+x {} \;
-    echo "DONE RIPPING '$title'"
+  ### Make backup
+  # TODO Maybe tee a log for each file?
+  time dvdbackup --mirror --progress --input=$dvd_device --output=$backup_dir --name="$title"
+
+  ### If error during dvdbackup...
+  if [ $? -ne 0 ] ; then
+    # Complain and exit
+    # TODO Maybe retry with the error-reducing  option --error=b ?  
+    # TODO Find out if dvdbackup throws an error code on an error-filled disc.
+    echo "ERROR RUNNING dvdbackup"
+    exit $? 
+  fi
+    
+  # No clue why all users need read access on the dir and execute on the files.
+  #chmod -R a+r $backup_dir/"$title"
+  #find $backup_dir/"$title" -type d -exec chmod a+x {} \;
+  echo "DONE RIPPING '$title'"
 fi
 
-# Stop the background process indicator
+### Stop the background process indicator
+# ? Is there any way to do this without it showing up in the window?
 kill %%
 
+### Eject disc because we're done 
 eject $dvd_device
 
+####################
+##### MAKE ISO #####
+####################
+
+# TODO Add check for file $backup_dir/"$title".iso ?
 # Tell user we're making the ISO
 setTitle "MAKE ISO $termtitle : $title"
 echo "MAKE ISO $title"
 
-# Make ISO
+### Make ISO
+# TODO - Create background process indicator
+#   No -quiet and -gui both same - puts % on new lines.  Usable?
 time mkisofs -dvd-video -udf -quiet -output $backup_dir/"$title".iso $backup_dir/"$title"
 
-# Delete the working directory now that the ISO is done
+# If error during mkisofs...
+if [ $? -ne 0 ] ; then
+  # Complain and exit
+  echo "ERROR RUNNING mkisofs/genisoimage"
+  exit $? 
+fi
+
+### Delete the working directory now that the ISO is done successfully
 # TODO - Check mkisofs's output and ensure that it finished okay before deleting this.
 rm -rf $backup_dir/"$title"
 
-# Set title for the rename
+######################
+##### RENAME ISO #####
+######################
+
+# Set window title for the rename
 setTitle "RENAME $title.iso"
 
-echo "$title"
+# Ask for new title to rename .iso file
+echo "$title rip started $startTime"
 echo "Enter a new name, or just ENTER to quit"
 read renameTitle
+
+# If new title entered
 if [ "$renameTitle" != "" ] ; then
-    mv $backup_dir/"$title".iso $backup_dir/"$renameTitle".iso
-    # Set $title to new title 
+  # If an .iso already exists with that new title
+  if [ -f $backup_dir/"$renameTitle".iso ] ; then  
+    # Complain and do nothing
+    echo "$backup_dir/$renameTitle.iso exists!  Not renaming."
+    read nothingness
+  else 
+    # Otherwise, go ahead and rename (safely) and update $title var
+    mv --no-clobber $backup_dir/"$title".iso $backup_dir/"$renameTitle".iso
     title="$renameTitle"
+  fi
 fi
 
-setTitle "DONE $termTitle : $title"
+################
+##### DONE #####
+################
+
+# Tell the user that we're done
+setTitle "DONE $termTitle : $title.iso"
+echo "DONE $termTitle : $title.iso"
 
 # Pause
 #read nothingess
