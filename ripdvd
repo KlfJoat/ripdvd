@@ -87,16 +87,14 @@ else
   # TODO Maybe tee a log for each file?
   time dvdbackup --mirror --progress --input=$dvd_device --output=$backup_dir --name="$title"
 
-  # Handle dvdbackup's error output
-  case $? in
-    0 ) ;; # Success
-  # 1 ) ;; # Usage error
-  # 2 ) ;; # Title name error
-    * ) 
-       echo "ERROR RUNNING dvdbackup"
-       exit $? 
-       ;; # Failure (-1 or other). TODO Maybe retry with the error-reducing  option --error=b ?  Unknown if dvdbackup throws an error code on an error-filled disc.
-  esac
+  # If error during dvdbackup...
+  if [ $? -ne 0 ] ; then
+    # Complain and exit
+    # TODO Maybe retry with the error-reducing  option --error=b ?  
+    # TODO Find out if dvdbackup throws an error code on an error-filled disc.
+    echo "ERROR RUNNING dvdbackup"
+    exit $? 
+  fi
     
   # No clue why all users need read access on the dir and execute on the files.
   #chmod -R a+r $backup_dir/"$title"
@@ -116,7 +114,15 @@ echo "MAKE ISO $title"
 
 # Make ISO
 # TODO - Create background process indicator
+#   No -quiet and -gui both same - puts % on new lines.  Usable?
 time mkisofs -dvd-video -udf -quiet -output $backup_dir/"$title".iso $backup_dir/"$title"
+
+# If error during mkisofs...
+if [ $? -ne 0 ] ; then
+  # Complain and exit
+  echo "ERROR RUNNING mkisofs/genisoimage"
+  exit $? 
+fi
 
 # Delete the working directory now that the ISO is done
 # TODO - Check mkisofs's output and ensure that it finished okay before deleting this.
