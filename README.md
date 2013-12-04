@@ -20,18 +20,6 @@ The only time you have to interact with it is when the DVD label is blank or it'
     
 *   Meanwhile, back in the terminal window, it will have asked you if you want to rename the ISO from the default name. If not, just press ENTER.
 
-## UNDER THE HOOD
-
-The script does the following:
-* Queries the DVD for its internal name using `dvdbackup`
-* If there is a (*rare*) problem with that internal title, it pauses to ask for a rename.
-* Backs up the DVD using `dvdbackup`
-* Includes some progress and runtime information
-* Ejects the disc
-* Converts to ISO
-* Deletes the `dvdbackup` directory
-* Asks for a final rename of the ISO (or `Enter` if none)
-
 
 ## INSTALLATION
 
@@ -45,6 +33,40 @@ The script does the following:
 
 xxx4) In GNOME, go to System->Preferences->Removable Drives/Media->Multimedia, and set the "Play DVD when inserted" command to "/home/klfjoat/bin/ripdvd %d" (I don't know how to do this in other types of desktop environments)
 
+
+## UNDER THE HOOD
+
+The script does the following:
+* Queries the DVD for its internal name using `dvdbackup`
+* If there is a (*rare*) problem with that internal title, it pauses to ask for a rename.
+* Backs up the DVD using `dvdbackup`
+* Includes some progress and runtime information
+* Ejects the disc
+* Converts to ISO
+* Deletes the `dvdbackup` directory
+* Asks for a final rename of the ISO (or `Enter` if none)
+
+
+## WHY THIS WAY?
+
+I've seen (and used) many of the other ripping methods, and found them wanting...
+* Brasero: Not automated
+* dd: I've used Linux for 20 years and I can't figure out how to use this tool properly
+* Rip::DVD: Couldn't get it to work, seems to transcode, and not automated
+* OGMrip: Transcoder, not automated
+* mplayer: Transcodes by its nature when ripping
+* vlc: Transcodes by its nature when ripping
+
+... And so on.  `dvdbackup` is different...
+* It is designed to read DVD's specifically.
+* It understands DVD's internal content and structure.
+* It rips native DVD structures *without transcoding*.
+* It preserves menus, special features, subtitles, alternate audio, etc.
+* It uses `libdvdread` directly, so it takes advantage of DVD (optical) drive error correction.
+* It has internal error correction and recovery of bad reads.
+* It backs up my DVD's even when Digital **Restrictions** Management has been **forced** on me **in violation of my Fair Use rights!!**
+
+Sure, it takes longer than Brasero's image file option, but it reads a lot more discs and it's automated.  So that's basically why.
 
 (The script and instructions based on http://lifehacker.com/494836168#comments)
 
