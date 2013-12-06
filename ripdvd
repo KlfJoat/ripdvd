@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# ripdvd - Rip stubborn DVD's to ISO using dvdbackup
+# ripdvd - Back up (stubborn) DVD's to ISO using dvdbackup
 #
 # For stubborn discs, try manually with: 
 # time dvdbackup -M -i /dev/sr0 -o /home/klfjoat/tmp -v -p --error=b | tee /home/klfjoat/tmp/dvdbackup-stubborn.log

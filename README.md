@@ -1,6 +1,6 @@
 # ripdvd
 
-A script to help me rip my DVD's from disc to ISO automatically.
+A script to help me back up my DVD's from disc to ISO automatically.
 
 The only time you have to interact with it is when the DVD label is blank or it's a duplicate name with a DVD you already ripped.
 
@@ -14,7 +14,7 @@ The only time you have to interact with it is when the DVD label is blank or it'
     
     If it doesn't like the default name, it will beep and ask you to enter a different one.
     
-*   After ripping, it will eject the disc.
+*   After backing up, it will eject the disc.
 
     You can immediately put in another disc and the process will start over. 
     
@@ -42,14 +42,14 @@ The script does the following:
 * Backs up the DVD using `dvdbackup`
 * Includes some progress and runtime information
 * Ejects the disc
-* Converts to ISO
+* Creates an ISO
 * Deletes the `dvdbackup` directory
 * Asks for a final rename of the ISO (or `Enter` if none)
 
 
 ## WHY THIS WAY?
 
-I've seen (and used) many of the other ripping methods, and found them wanting...
+I've seen (and used) many of the other backup methods, and found them wanting...
 * Brasero: Not automated
 * dd: I've used Linux for 20 years and I can't figure out how to use this tool properly
 * Rip::DVD: Couldn't get it to work, seems to transcode, and not automated
@@ -60,7 +60,7 @@ I've seen (and used) many of the other ripping methods, and found them wanting..
 ... And so on.  `dvdbackup` is different...
 * It is designed to read DVD's specifically.
 * It understands DVD's internal content and structure.
-* It rips native DVD structures *without transcoding*.
+* It grabs native DVD structures *without transcoding*.
 * It preserves menus, special features, subtitles, alternate audio, etc.
 * It uses `libdvdread` directly, so it takes advantage of DVD (optical) drive error correction.
 * It has internal error correction and recovery of bad reads.
