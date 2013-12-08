@@ -16,18 +16,18 @@
 
 backup_dir=/home/klfjoat/tmp
 
-######################################
-# # # # # # # # #  # # # # # # # # # # 
-####### DO NOT EDIT BELOW HERE #######
-# # # # # # # # #  # # # # # # # # # # 
-######################################
+############################################
+# # # # # # # # # # #  # # # # # # # # # # # 
+########## DO NOT EDIT BELOW HERE ##########
+# # # # # # # # # # #  # # # # # # # # # # # 
+############################################
 
 #########################
 ##### GENERAL SETUP #####
 #########################
 
 # Debugging (print commands before executing)
-# set -x
+#set -x
 
 ### Set DVD device
 # Set device as passed parameter or a sensible default
@@ -78,7 +78,7 @@ i="0"
 findTitle="$title"
 while [ -d $backup_dir/"$findTitle" ] ; do
   i=$[$i+1]
-  findTitle="$title_$i"
+  findTitle="$title-$i"
 done
 title="$findTitle"
 
@@ -132,7 +132,7 @@ i="0"
 isoTitle="$title.iso"
 while [ -f $backup_dir/"$isoTitle" ] ; do
   i=$[$i+1]
-  isoTitle="$title_$i.iso"
+  isoTitle="$title-$i.iso"
 done
 #  title="$title_$i"
 
