@@ -29,6 +29,12 @@ backup_dir=/home/klfjoat/tmp
 # Debugging (print commands before executing)
 # set -x
 
+### Set DVD device
+# Set device as passed parameter or a sensible default
+# TODO: Validate that $dvd_device is an optical drive (how?)(why: it doesn't make sense to do this to anything else) and that it has something in it (how?).  
+dvd_device=${1:-/dev/sr0}
+shift
+
 ### Functions
 # Function to change the title of an [xterm|gnome-terminal] window
 function setTitle () {
@@ -40,10 +46,6 @@ startTime=`date --iso-8601=minutes`
 
 # ? Why umask?
 umask 022
-
-# TODO: Validate that dvd_device has been passed, is an optical drive (how?)(why: it doesn't make sense to do this to anything else), and that it has something in it (how?).  
-dvd_device=$1
-shift
 
 termTitle="RIP $dvd_device"
 
