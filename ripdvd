@@ -134,7 +134,7 @@ while [ -f $backup_dir/"$isoTitle" ] ; do
   i=$[$i+1]
   isoTitle="$title-$i.iso"
 done
-#  title="$title_$i"
+#  title="$title-$i"
 
 # Tell user we're making the ISO
 setTitle "MAKE ISO $termtitle : $isoTitle"
@@ -143,7 +143,7 @@ echo "MAKE ISO $isoTitle"
 ### Make ISO
 # TODO - Create background process indicator?
 #   No -quiet and -gui both same - puts % on new lines.  Usable?
-time mkisofs -dvd-video -udf -quiet -output $backup_dir/"$isoTitle" $backup_dir/"$title"
+time mkisofs -A "$title" -dvd-video -udf -quiet -output $backup_dir/"$isoTitle" $backup_dir/"$title"
 
 # If error during mkisofs...
 if [ $? -ne 0 ] ; then
